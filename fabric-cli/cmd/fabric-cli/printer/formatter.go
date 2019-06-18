@@ -93,6 +93,8 @@ type Formatter interface {
 type FormatterOpts struct {
 	// Base64Encode indicates whether binary values are to be encoded in base 64
 	Base64Encode bool
+	// Writer
+	Writer Writer
 }
 
 // NewFormatter returns a new Formatter given the format and writer type. nil is returned
@@ -104,11 +106,18 @@ func NewFormatter(format OutputFormat, writerType WriterType) Formatter {
 // NewFormatterWithOpts returns a new Formatter given the format and writer type. nil is returned
 // if no formatter exists for the given type
 func NewFormatterWithOpts(format OutputFormat, writerType WriterType, opts *FormatterOpts) Formatter {
+	var writer Writer
+	if opts.Writer != nil {
+		writer = opts.Writer
+	} else {
+		writer = NewWriter(writerType)
+	}
+
 	switch format {
 	case JSON:
-		return &jsonFormatter{formatter: formatter{writer: NewWriter(writerType)}}
+		return &jsonFormatter{formatter: formatter{writer: writer}}
 	case DISPLAY:
-		return &displayFormatter{formatter: formatter{writer: NewWriter(writerType)}, base64Encode: opts.Base64Encode}
+		return &displayFormatter{formatter: formatter{writer: writer}, base64Encode: opts.Base64Encode}
 	default:
 		return nil
 	}
